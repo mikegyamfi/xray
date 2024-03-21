@@ -52,7 +52,7 @@ def send_bundle(receiver, bundle_amount, reference):
     })
     headers = {
         'Content-Type': 'application/json',
-        'Authorization': "Bearer MrhIPvfwpk3VpCfYStwrGZmTSMPq3Yjx0FusBoyu"
+        'Authorization': config("BEARER_TOKEN")
     }
 
     response = requests.request("POST", url, headers=headers, data=payload)
