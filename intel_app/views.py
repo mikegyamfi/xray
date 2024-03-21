@@ -86,13 +86,13 @@ def pay_with_wallet(request):
                 user.wallet -= float(amount)
                 user.save()
                 receiver_message = f"Your bundle purchase has been completed successfully. {bundle}MB has been credited to you by {request.user.phone}.\nReference: {reference}\n"
-                sms_message = f"Hello @{request.user.username}. Your bundle purchase has been completed successfully. {bundle}MB has been credited to {phone_number}.\nReference: {reference}\nCurrent Wallet Balance: {user.wallet}\nThank you for using GH BAY."
+                sms_message = f"Hello @{request.user.username}. Your bundle purchase has been completed successfully. {bundle}MB has been credited to {phone_number}.\nReference: {reference}\nCurrent Wallet Balance: {user.wallet}\nThank you for using XRAY GH."
 
                 # num_without_0 = phone_number[1:]
                 # print(num_without_0)
                 # receiver_body = {
                 #     'recipient': f"233{num_without_0}",
-                #     'sender_id': 'GH BAY',
+                #     'sender_id': 'XRAY GH',
                 #     'message': receiver_message
                 # }
                 #
@@ -101,7 +101,7 @@ def pay_with_wallet(request):
                 #
                 # sms_body = {
                 #     'recipient': f"233{request.user.phone}",
-                #     'sender_id': 'GH BAY',
+                #     'sender_id': 'XRAY GH',
                 #     'message': sms_message
                 # }
                 #
