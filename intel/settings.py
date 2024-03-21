@@ -29,7 +29,7 @@ SECRET_KEY = "DGFYUGEUGFEFE"
 DEBUG = True
 
 ALLOWED_HOSTS = [
-
+    'xray-mdcjl.ondigitalocean.app'
 ]
 
 
