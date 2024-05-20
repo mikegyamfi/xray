@@ -813,7 +813,7 @@ def afa_mark_as_sent(request, pk):
         sms_message = f"Your AFA Registration has been completed. {txn.phone_number} has been registered.\nTransaction Reference: {txn.reference}"
 
         response1 = requests.get(
-            f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=Qmt0VHhiTVlTVE5md1lMcEF6VW4&to=0{request.user.phone}&from=XRAY&sms={sms_message}")
+            f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=Qmt0VHhiTVlTVE5md1lMcEF6VW4&to=0{txn.user.phone}&from=XRAY&sms={sms_message}")
         print(response1.text)
         messages.success(request, f"Transaction Completed")
         return redirect('afa_admin')
