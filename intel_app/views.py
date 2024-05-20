@@ -1519,56 +1519,6 @@ def paystack_webhook(request):
                     )
                     new_mtn_transaction.save()
                     return HttpResponse(status=200)
-                elif channel == "at_min":
-                    new_payment = models.Payment.objects.create(
-                        user=user,
-                        reference=reference,
-                        amount=paid_amount,
-                        transaction_date=datetime.now(),
-                        transaction_status="Pending"
-                    )
-                    new_payment.save()
-
-                    if user.status == "User":
-                        minutes = models.ATCreditPrice.objects.get(price=float(real_amount)).minutes
-                    else:
-                        minutes = models.ATCreditPrice.objects.get(price=float(real_amount)).minutes
-
-                    print(receiver)
-
-                    new_mtn_transaction = models.ATMinuteTransaction.objects.create(
-                        user=user,
-                        bundle_number=receiver,
-                        offer=f"{minutes} Minutes",
-                        reference=reference,
-                    )
-                    new_mtn_transaction.save()
-                    return HttpResponse(status=200)
-                elif channel == "afa_credit":
-                    new_payment = models.Payment.objects.create(
-                        user=user,
-                        reference=reference,
-                        amount=paid_amount,
-                        transaction_date=datetime.now(),
-                        transaction_status="Pending"
-                    )
-                    new_payment.save()
-
-                    if user.status == "User":
-                        minutes = models.AfaCreditPrice.objects.get(price=float(real_amount)).minutes
-                    else:
-                        minutes = models.AfaCreditPrice.objects.get(price=float(real_amount)).minutes
-
-                    print(receiver)
-
-                    new_mtn_transaction = models.AfaCreditTransaction.objects.create(
-                        user=user,
-                        bundle_number=receiver,
-                        offer=f"{minutes} Minutes",
-                        reference=reference,
-                    )
-                    new_mtn_transaction.save()
-                    return HttpResponse(status=200)
                 elif channel == "big-time":
                     new_payment = models.Payment.objects.create(
                         user=user,
@@ -1625,7 +1575,7 @@ def paystack_webhook(request):
                     )
                     new_afa_txn.save()
                     return HttpResponse(status=200)
-                if channel == "topup":
+                elif channel == "topup":
                     try:
                         topup_amount = metadata.get('real_amount')
 
