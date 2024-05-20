@@ -1489,7 +1489,7 @@ def paystack_webhook(request):
                                 transaction_status="Pending"
                             )
                             new_transaction.save()
-                            return HttpResponse(status=500)
+                            return HttpResponse(status=200)
                 elif channel == "mtn":
                     new_payment = models.Payment.objects.create(
                         user=user,
