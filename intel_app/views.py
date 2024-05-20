@@ -1400,7 +1400,7 @@ def paystack_webhook(request):
 
                     sms_body = {
                         'recipient': "233242442147",
-                        'sender_id': 'GH BAY',
+                        'sender_id': 'XRAY',
                         'message': sms_message
                     }
                     try:
@@ -1452,13 +1452,13 @@ def paystack_webhook(request):
                                 )
                                 new_transaction.save()
                                 receiver_message = f"Your bundle purchase has been completed successfully. {bundle}MB has been credited to you by {user.phone}.\nReference: {reference}\n"
-                                sms_message = f"Hello @{request.user.username}. Your bundle purchase has been completed successfully. {bundle}MB has been credited to {receiver}.\nReference: {reference}\nCurrent Wallet Balance: {user.wallet}\nThank you for using GH BAY."
+                                sms_message = f"Hello @{request.user.username}. Your bundle purchase has been completed successfully. {bundle}MB has been credited to {receiver}.\nReference: {reference}\nCurrent Wallet Balance: {user.wallet}\nThank you for using XRAY."
 
                                 num_without_0 = receiver[1:]
                                 print(num_without_0)
                                 receiver_body = {
                                     'recipient': f"233{num_without_0}",
-                                    'sender_id': 'GH BAY',
+                                    'sender_id': 'XRAY',
                                     'message': receiver_message
                                 }
 
@@ -1621,7 +1621,7 @@ def paystack_webhook(request):
                         }
 
                         sms_url = 'https://webapp.usmsgh.com/api/sms/send'
-                        sms_message = f"Your GH Data wallet has been credited with GHS{topup_amount}.\nReference: {reference}\n"
+                        sms_message = f"Your XRay wallet has been credited with GHS{topup_amount}.\nReference: {reference}\n"
 
                         sms_body = {
                             'recipient': f"233{user.phone}",
@@ -1693,11 +1693,11 @@ def paystack_webhook(request):
                     }
 
                     sms_url = 'https://webapp.usmsgh.com/api/sms/send'
-                    sms_message = f"Order Placed Successfully\nYour order with order number {order_form.tracking_number} has been received and is being processed.\nYou will receive a message when your order is Out for Delivery.\nThank you for shopping with GH BAY"
+                    sms_message = f"Order Placed Successfully\nYour order with order number {order_form.tracking_number} has been received and is being processed.\nYou will receive a message when your order is Out for Delivery.\nThank you for shopping with XRAY"
 
                     sms_body = {
                         'recipient': f"233{order_form.phone}",
-                        'sender_id': 'GH BAY',
+                        'sender_id': 'XRAY',
                         'message': sms_message
                     }
                     try:
