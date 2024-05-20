@@ -45,6 +45,12 @@ class TopUpRequestAdmin(admin.ModelAdmin):
     list_display = ['user', 'reference', 'amount', 'date', 'status']
 
 
+class WalletTransactionAdmin(admin.ModelAdmin):
+    list_display = ['user', 'transaction_type', 'transaction_amount', 'transaction_use', 'new_balance',
+                    'transaction_date']
+    search_fields = ['user', 'transaction_type']
+
+
 admin.site.register(models.CustomUser, CustomUserAdmin)
 admin.site.register(models.IShareBundleTransaction, IShareBundleTransactionAdmin)
 admin.site.register(models.MTNTransaction, MTNTransactionAdmin)
@@ -62,3 +68,4 @@ admin.site.register(models.SuperAgentMTNBundlePrice)
 admin.site.register(models.BigTimeBundlePrice)
 admin.site.register(models.AgentBigTimeBundlePrice)
 admin.site.register(models.SuperAgentBigTimeBundlePrice)
+admin.site.register(models.WalletTransaction, WalletTransactionAdmin)

@@ -1593,6 +1593,15 @@ def paystack_webhook(request):
                         print(user.wallet)
                         user.wallet += float(topup_amount)
                         user.save()
+
+                        new_wallet_transaction = models.WalletTransaction.objects.create(
+                            user=user,
+                            transaction_type="Credit",
+                            transaction_amount=float(topup_amount),
+                            transaction_use="Top up(Paystack)",
+                            new_balance=user.wallet
+                        )
+                        new_wallet_transaction.save()
                         print(user.wallet)
 
                         if models.TopUpRequestt.objects.filter(user=user, reference=reference, status=True).exists():
