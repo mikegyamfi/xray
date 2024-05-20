@@ -1386,13 +1386,12 @@ def paystack_webhook(request):
 
                 print(f"reeeeeeeaaaaaaaaal amount: {rounded_real_amount}")
                 print(f"paaaaaaaaaaaaaiiddd amount: {rounded_paid_amount}")
+                #
+                # if channel == "topup":
+                #     percentage = 2/100
+                #     rounded_paid_amount -= percentage
 
-                if channel == "topup":
-                    percentage = 2/100
-                    rounded_paid_amount -= percentage
-
-
-                is_within_range = (rounded_real_amount - 7) <= rounded_paid_amount <= (rounded_real_amount + 7)
+                is_within_range = (rounded_real_amount - 3) <= rounded_paid_amount <= (rounded_real_amount + 3)
 
                 if not is_within_range:
                     sms_headers = {
