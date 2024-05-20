@@ -768,9 +768,9 @@ def mark_as_sent(request, pk):
         sms_url = 'https://webapp.usmsgh.com/api/sms/send'
         sms_message = f"Your account has been credited with {txn.offer}.\nTransaction Reference: {txn.reference}"
 
-        # response1 = requests.get(
-        #     f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=Qmt0VHhiTVlTVE5md1lMcEF6VW4&to=0{request.user.phone}&from=XRAY&sms={sms_message}")
-        # print(response1.text)
+        response1 = requests.get(
+            f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=Qmt0VHhiTVlTVE5md1lMcEF6VW4&to=0{txn.user.phone}&from=XRAY&sms={sms_message}")
+        print(response1.text)
 
         return redirect('mtn_admin')
 
@@ -790,9 +790,9 @@ def bt_mark_as_sent(request, pk):
         sms_url = 'https://webapp.usmsgh.com/api/sms/send'
         sms_message = f"Your AT BIG TIME transaction has been completed. {txn.bundle_number} has been credited with {txn.offer}.\nTransaction Reference: {txn.reference}"
 
-        # response1 = requests.get(
-        #     f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=Qmt0VHhiTVlTVE5md1lMcEF6VW4&to=0{request.user.phone}&from=XRAY&sms={sms_message}")
-        # print(response1.text)
+        response1 = requests.get(
+            f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=Qmt0VHhiTVlTVE5md1lMcEF6VW4&to=0{txn.user.phone}&from=XRAY&sms={sms_message}")
+        print(response1.text)
         messages.success(request, f"Transaction Completed")
         return redirect('bt_admin')
 
