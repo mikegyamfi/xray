@@ -1433,7 +1433,7 @@ def paystack_webhook(request):
                             data = send_bundle_response.json()
                             print(data)
                         except:
-                            return HttpResponse(status=500)
+                            return HttpResponse(status=200)
 
                         sms_headers = {
                             'Authorization': 'Bearer 1334|wroIm5YnQD6hlZzd8POtLDXxl4vQodCZNorATYGX',
