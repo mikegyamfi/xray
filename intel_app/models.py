@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+
+
 # Create your models here.
 
 
@@ -49,7 +51,7 @@ class IShareBundleTransaction(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.bundle_number} - {self.reference}"
-    
+
 
 class IshareBundlePrice(models.Model):
     price = models.FloatField(null=False, blank=False)
@@ -57,7 +59,7 @@ class IshareBundlePrice(models.Model):
 
     def __str__(self):
         if self.bundle_volume >= 1000:
-            return f"GHS{self.price} - {self.bundle_volume/1000}GB"
+            return f"GHS{self.price} - {self.bundle_volume / 1000}GB"
         return f"GHS{self.price} - {self.bundle_volume}MB"
 
 
@@ -67,7 +69,7 @@ class AgentIshareBundlePrice(models.Model):
 
     def __str__(self):
         if self.bundle_volume >= 1000:
-            return f"GHS{self.price} - {self.bundle_volume/1000}GB"
+            return f"GHS{self.price} - {self.bundle_volume / 1000}GB"
         return f"GHS{self.price} - {self.bundle_volume}MB"
 
 
@@ -77,9 +79,9 @@ class SuperAgentIshareBundlePrice(models.Model):
 
     def __str__(self):
         if self.bundle_volume >= 1000:
-            return f"GHS{self.price} - {self.bundle_volume/1000}GB"
+            return f"GHS{self.price} - {self.bundle_volume / 1000}GB"
         return f"GHS{self.price} - {self.bundle_volume}MB"
-    
+
 
 class MTNTransaction(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
@@ -105,7 +107,7 @@ class BigTimeBundlePrice(models.Model):
 
     def __str__(self):
         if self.bundle_volume >= 1000:
-            return f"GHS{self.price} - {self.bundle_volume/1000}GB"
+            return f"GHS{self.price} - {self.bundle_volume / 1000}GB"
         return f"GHS{self.price} - {self.bundle_volume}MB"
 
 
@@ -115,7 +117,7 @@ class AgentBigTimeBundlePrice(models.Model):
 
     def __str__(self):
         if self.bundle_volume >= 1000:
-            return f"GHS{self.price} - {self.bundle_volume/1000}GB"
+            return f"GHS{self.price} - {self.bundle_volume / 1000}GB"
         return f"GHS{self.price} - {self.bundle_volume}MB"
 
 
@@ -125,7 +127,7 @@ class SuperAgentBigTimeBundlePrice(models.Model):
 
     def __str__(self):
         if self.bundle_volume >= 1000:
-            return f"GHS{self.price} - {self.bundle_volume/1000}GB"
+            return f"GHS{self.price} - {self.bundle_volume / 1000}GB"
         return f"GHS{self.price} - {self.bundle_volume}MB"
 
 
@@ -133,10 +135,9 @@ class MTNBundlePrice(models.Model):
     price = models.FloatField(null=False, blank=False)
     bundle_volume = models.FloatField(null=False, blank=False)
 
-
     def __str__(self):
         if self.bundle_volume >= 1000:
-            return f"GHS{self.price} - {self.bundle_volume/1000}GB"
+            return f"GHS{self.price} - {self.bundle_volume / 1000}GB"
         return f"GHS{self.price} - {self.bundle_volume}MB"
 
 
@@ -144,10 +145,9 @@ class AgentMTNBundlePrice(models.Model):
     price = models.FloatField(null=False, blank=False)
     bundle_volume = models.FloatField(null=False, blank=False)
 
-
     def __str__(self):
         if self.bundle_volume >= 1000:
-            return f"GHS{self.price} - {self.bundle_volume/1000}GB"
+            return f"GHS{self.price} - {self.bundle_volume / 1000}GB"
         return f"GHS{self.price} - {self.bundle_volume}MB"
 
 
@@ -155,10 +155,9 @@ class SuperAgentMTNBundlePrice(models.Model):
     price = models.FloatField(null=False, blank=False)
     bundle_volume = models.FloatField(null=False, blank=False)
 
-
     def __str__(self):
         if self.bundle_volume >= 1000:
-            return f"GHS{self.price} - {self.bundle_volume/1000}GB"
+            return f"GHS{self.price} - {self.bundle_volume / 1000}GB"
         return f"GHS{self.price} - {self.bundle_volume}MB"
 
 
@@ -198,7 +197,7 @@ class AFARegistration(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.phone_number} - {self.gh_card_number}"
-    
+
 
 class Payment(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
@@ -238,3 +237,16 @@ class TopUpRequestt(models.Model):
     status = models.BooleanField(default=False, blank=False, null=False)
     date = models.DateTimeField(auto_now_add=True)
     credited_at = models.DateTimeField(auto_now_add=True)
+
+
+class WalletTransaction(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    choices = (
+        ("Debit", "Debit"),
+        ("Credit", "Credit"),
+    )
+    transaction_type = models.CharField(max_length=250, null=True, blank=True, choices=choices)
+    transaction_date = models.DateTimeField(auto_now_add=True)
+    transaction_use = models.CharField(max_length=250, null=True, blank=True)
+    transaction_amount = models.FloatField(null=False)
+    new_balance = models.FloatField(null=True)

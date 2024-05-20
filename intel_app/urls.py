@@ -17,6 +17,7 @@ urlpatterns = [
     path('history/mtn', views.mtn_history, name="mtn-history"),
     path('history/big_time', views.big_time_history, name="bt-history"),
     path('history/afa', views.afa_history, name="afa-history"),
+    path('history/wallet', views.wallet_history, name='wallet_history'),
     path('verify_transaction/<str:reference>/', views.verify_transaction, name="verify_transaction"),
 
     path('mtn_admin', views.admin_mtn_history, name='mtn_admin'),
@@ -45,5 +46,8 @@ urlpatterns = [
 
     path('login', authViews.login_page, name='login'),
     path('signup', authViews.sign_up, name='signup'),
-    path('logout', authViews.logout_user, name="logout")
+    path('logout', authViews.logout_user, name="logout"),
+    path("password_reset/", views.password_reset_request, name="password_reset"),
+
+    path('paystack_webhook', views.paystack_webhook, name='paystack_webhook')
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

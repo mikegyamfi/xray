@@ -69,9 +69,9 @@
               <p class="font-weight-bold">Afa Bundle Price: GHS{{price}}</p>
               <input type="hidden" value={{email}} class="email">
               <input type="hidden" value={{ref}} class="reference">
-<!--              {% if request.user.is_superuser %}-->
-              <button type="submit" class="btn btn-success"> Pay Online</button>
-<!--              {% endif %}-->
+              {% if request.user.is_superuser %}
+              <button type="submit" class="btn btn-success paystack-btn" onclick="payWithPaystack()"> Pay </button>
+              {% endif %}
               <button type="button" class="btn btn-primary pay-with-wallet">Pay with Wallet</button>
               <a style="display: none" class="spinner-border process text-primary mt-2" role="status"></a>
               <h6 class="mt-2"><i class="fa fa-money"></i> Wallet Balance: GHS {{wallet}}</h6>
@@ -92,62 +92,72 @@
   const paymentForm = document.getElementById('tigoPaymentForm');
   let email = $(".email").val()
   let ref = $(".reference").val()
-//   console.log(email + ref)
-//   paymentForm.addEventListener("submit", payWithPaystack, false);
-//   function payWithPaystack(e) {
-//     e.preventDefault();
-//     let amount = $(".airtime-input").val()
-//     let phonenumber = $(".phone").val()
-//     let name = $(".name").val()
-//     let card = $(".card").val()
-//     let birth = $(".birth").val()
-//     let occupation = $(".occ").val()
-//     if (phonenumber.toString().length < 10 || phonenumber.toString().length != 10 || phonenumber.toString().length > 10){
-//       Swal.fire({text: "Phone number must be 10 digits"})
-//       return;
-//     }
-//
-//     let handler = PaystackPop.setup({
-//       key: 'pk_live_7055f8c8c4761f55114fb477035e68505b354572',
-//       email: email,
-//       amount: Number('{{price}}') * 100,
-//       currency: "GHS",
-//       ref: ref, // generates a pseudo-unique reference. Please replace with a reference you generated. Or remove the line entirely so our API will generate one for you
-//       // label: "Optional string that replaces customer email"
-//       onClose: function(){
-//         swal("Transaction Closed");
-//         location.reload();
-//       },
-//       callback: function(response){
-//         reference = response.reference
-//         let message = 'Payment complete! Reference: ' + response.reference;
-//         Swal.fire({text: "Processing your order"})
-//         Swal.showLoading();
-//         let token = $("input[name=csrfmiddlewaretoken]").val();
-//         $.ajax({
-//           url: '/services/afa/',
-//           method: "POST",
-//           data: {
-//             phone: phonenumber,
-//             amount: '{{price}}',
-//             reference: ref,
-//             name: name,
-//             card: card,
-//             birth: birth,
-//             occupation: occupation,
-//             csrfmiddlewaretoken: token,
-//           },
-//           success: function(response){
-//             Swal.fire({text: response.status, icon:response.icon, confirmButtonText:"Okay"}).then((value) => {
-//               location.reload()
-//             })
-//           }
-//         })
-//       }
-//     });
-//
-//   handler.openIframe();
-// }
+  console.log(email + ref)
+  paymentForm.addEventListener("submit", payWithPaystack, false);
+  function payWithPaystack(e) {
+    e.preventDefault();
+    let amount = $(".airtime-input").val()
+    let phonenumber = $(".phone").val()
+    let name = $(".name").val()
+    let card = $(".card").val()
+    let birth = $(".birth").val()
+    let occupation = $(".occ").val()
+    if (phonenumber.toString().length < 10 || phonenumber.toString().length != 10 || phonenumber.toString().length > 10){
+      Swal.fire({text: "Phone number must be 10 digits"})
+      return;
+    }
+
+    let handler = PaystackPop.setup({
+      key: 'pk_live_f69f1a3af8820577d1f4530f7fa31dbb9bee2538',
+      email: email,
+      amount: Number('{{price}}') * 100,
+      currency: "GHS",
+      ref: ref,
+      metadata: {
+        'receiver': phonenumber,
+        'phone_number': phonenumber,
+        'channel': 'afa',
+        'real_amount': amount,
+        'db_id': "{{id}}",
+        'card_number': card,
+        'name': name,
+        'occupation': occupation,
+        'dob': birth
+      },
+      onClose: function(){
+        swal("Transaction Closed");
+        location.reload();
+      },
+      callback: function(response){
+        location.reload()
+        // let message = 'Payment complete! Reference: ' + response.reference;
+        // Swal.fire({text: "Processing your order"})
+        // Swal.showLoading();
+        // let token = $("input[name=csrfmiddlewaretoken]").val();
+        // $.ajax({
+        //   url: '/services/afa/',
+        //   method: "POST",
+        //   data: {
+        //     phone: phonenumber,
+        //     amount: '{{price}}',
+        //     reference: ref,
+        //     name: name,
+        //     card: card,
+        //     birth: birth,
+        //     occupation: occupation,
+        //     csrfmiddlewaretoken: token,
+        //   },
+        //   success: function(response){
+        //     Swal.fire({text: response.status, icon:response.icon, confirmButtonText:"Okay"}).then((value) => {
+        //       location.reload()
+        //     })
+        //   }
+        // })
+      }
+    });
+
+  handler.openIframe();
+}
 
 $("body").on('click', '.pay-with-wallet', function(e){
     let firstBtn = $(".paystack-btn")

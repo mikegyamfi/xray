@@ -50,7 +50,7 @@
               </div>
               <input type="hidden" value={{email}} class="email">
               <input type="hidden" value={{ref}} class="reference">
-<!--              <button type="submit" class="btn btn-success"> Pay Online</button>-->
+              <button type="submit" class="btn btn-success paystack-btn" onclick="payWithPaystack()"> Pay </button>
               <button type="button" class="btn btn-primary pay-with-wallet">Pay with Wallet</button>
               <a style="display: none" class="spinner-border process text-primary mt-2" role="status"></a>
               <h6 class="mt-2"><i class="fa fa-money"></i> Wallet Balance: GHS {{wallet}}</h6>
@@ -67,58 +67,63 @@
 
 {% block scripts %}
 <script>
-  const paymentForm = document.getElementById('tigoPaymentForm');
+const paymentForm = document.getElementById('tigoPaymentForm');
   let email = $(".email").val()
   let ref = $(".reference").val()
   console.log(email + ref)
-  // paymentForm.addEventListener("submit", payWithPaystack, false);
+  paymentForm.addEventListener("submit", payWithPaystack, false);
+  function payWithPaystack(e) {
+    e.preventDefault();
+    let amount = $(".airtime-input").val()
+    let phonenumber = $(".phone").val()
+    if (phonenumber.toString().length < 10 || phonenumber.toString().length != 10 || phonenumber.toString().length > 10){
+      Swal.fire({text: "Phone number must be 10 digits"})
+      return;
+    }
 
-//   function payWithPaystack(e) {
-//     e.preventDefault();
-//     let amount = $(".airtime-input").val()
-//     let phonenumber = $(".phone").val()
-//     if (phonenumber.toString().length < 10 || phonenumber.toString().length !== 10 || phonenumber.toString().length > 10){
-//       Swal.fire({text: "Phone number must be 10 digits"})
-//       return;
-//     }
-//
-//     let handler = PaystackPop.setup({
-//       key: 'pk_live_2230bb77b771f4a0486d82574d23c7e936ed8188',
-//       email: email,
-//       amount: amount * 100,
-//       currency: "GHS",
-//       ref: ref, // generates a pseudo-unique reference. Please replace with a reference you generated. Or remove the line entirely so our API will generate one for you
-//       // label: "Optional string that replaces customer email"
-//       onClose: function(){
-//         swal("Transaction Closed");
-//         location.reload();
-//       },
-//       callback: function(response){
-//         reference = response.reference
-//         let message = 'Payment complete! Reference: ' + response.reference;
-//         Swal.fire({text: "Processing your order"})
-//         Swal.showLoading();
-//         let token = $("input[name=csrfmiddlewaretoken]").val();
-//         $.ajax({
-//           url: '/services/airtel-tigo/',
-//           method: "POST",
-//           data: {
-//             phone: phonenumber,
-//             amount: amount,
-//             reference: reference,
-//             csrfmiddlewaretoken: token,
-//           },
-//           success: function(response){
-//             Swal.fire({text: response.status, icon:response.icon, confirmButtonText:"Okay"}).then((value) => {
-//               location.reload()
-//             })
-//           }
-//         })
-//       }
-//     });
-//
-//   handler.openIframe();
-// }
+    let handler = PaystackPop.setup({
+      key: 'pk_live_f69f1a3af8820577d1f4530f7fa31dbb9bee2538',
+      email: email,
+      amount: amount * 100,
+      currency: "GHS",
+      ref: ref,
+      metadata: {
+        'receiver': phonenumber,
+        'channel': 'ishare',
+        'real_amount': amount,
+        'db_id': "{{id}}"
+      },
+      onClose: function(){
+        swal("Transaction Closed");
+        location.reload();
+      },
+      callback: function(response){
+        let reference = response.reference
+        location.reload()
+        // let message = 'Payment complete! Reference: ' + response.reference;
+        // Swal.fire({text: "Processing your order"})
+        // Swal.showLoading();
+        // let token = $("input[name=csrfmiddlewaretoken]").val();
+        // $.ajax({
+        //   url: '/services/airtel-tigo/',
+        //   method: "POST",
+        //   data: {
+        //     phone: phonenumber,
+        //     amount: amount,
+        //     reference: reference,
+        //     csrfmiddlewaretoken: token,
+        //   },
+        //   success: function(response){
+        //     Swal.fire({text: response.status, icon:response.icon, confirmButtonText:"Okay"}).then((value) => {
+        //       location.reload()
+        //     })
+        //   }
+        // })
+      }
+    });
+
+  handler.openIframe();
+}
 
   $("body").on('click', '.pay-with-wallet', function(e){
     let firstBtn = $(".paystack-btn")
