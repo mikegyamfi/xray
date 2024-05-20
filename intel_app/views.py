@@ -29,6 +29,7 @@ def services(request):
     return render(request, "layouts/services.html")
 
 
+@login_required(login_url='login')
 def pay_with_wallet(request):
     if request.method == "POST":
         admin = models.AdminInfo.objects.filter().first().phone_number
@@ -331,6 +332,7 @@ def airtel_tigo(request):
     return render(request, "layouts/services/at.html", context=context)
 
 
+@login_required(login_url='login')
 def mtn_pay_with_wallet(request):
     if request.method == "POST":
         admin = models.AdminInfo.objects.filter().first().phone_number
@@ -561,6 +563,7 @@ def afa_registration(request):
     return render(request, "layouts/services/afa.html", context=context)
 
 
+@login_required(login_url='login')
 def afa_registration_wallet(request):
     if request.method == "POST":
         user = models.CustomUser.objects.get(id=request.user.id)
@@ -1462,12 +1465,6 @@ def paystack_webhook(request):
                                 response1 = requests.get(
                                     f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=Qmt0VHhiTVlTVE5md1lMcEF6VW4&to=0{num_without_0}&from=XRAY&sms={receiver_message}")
                                 print(response1.text)
-
-                                sms_body = {
-                                    'recipient': f"233{request.user.phone}",
-                                    'sender_id': 'GH BAY',
-                                    'message': sms_message
-                                }
 
                                 response1 = requests.get(
                                     f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=Qmt0VHhiTVlTVE5md1lMcEF6VW4&to=0{request.user.phone}&from=XRAY&sms={sms_message}")
