@@ -669,7 +669,7 @@ def big_time(request):
     # for offer in mtn_offer:
     #     mtn_dict[str(offer)] = offer.bundle_volume
     context = {'form': form,
-               "ref": reference, "email": user_email, 'id': db_user_id, "wallet": 0 if user.wallet is None else user.wallet}
+               "ref": reference, "email": user_email, 'db_id': db_user_id, "wallet": 0 if user.wallet is None else user.wallet}
     return render(request, "layouts/services/big_time.html", context=context)
 
 

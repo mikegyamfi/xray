@@ -82,6 +82,8 @@
       return;
     }
 
+    console.log("{{db_id}}")
+
     let handler = PaystackPop.setup({
       key: 'pk_live_f69f1a3af8820577d1f4530f7fa31dbb9bee2538',
       email: email,
@@ -92,7 +94,7 @@
         'receiver': phonenumber,
         'channel': 'big-time',
         'real_amount': amount,
-        'db_id': "{{id}}"
+        'db_id': "{{db_id}}"
       },
       onClose: function(){
         swal("Transaction Closed");
