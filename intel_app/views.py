@@ -1467,13 +1467,16 @@ def paystack_webhook(request):
                                     'message': receiver_message
                                 }
 
-                                response1 = requests.get(
-                                    f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=Qmt0VHhiTVlTVE5md1lMcEF6VW4&to=0{num_without_0}&from=XRAY&sms={receiver_message}")
-                                print(response1.text)
+                                try:
+                                    response1 = requests.get(
+                                        f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=Qmt0VHhiTVlTVE5md1lMcEF6VW4&to=0{num_without_0}&from=XRAY&sms={receiver_message}")
+                                    print(response1.text)
 
-                                response1 = requests.get(
-                                    f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=Qmt0VHhiTVlTVE5md1lMcEF6VW4&to=0{request.user.phone}&from=XRAY&sms={sms_message}")
-                                print(response1.text)
+                                    response1 = requests.get(
+                                        f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=Qmt0VHhiTVlTVE5md1lMcEF6VW4&to=0{request.user.phone}&from=XRAY&sms={sms_message}")
+                                    print(response1.text)
+                                except:
+                                    print("did not pass")
                                 return HttpResponse(status=200)
                             else:
                                 new_transaction = models.IShareBundleTransaction.objects.create(
