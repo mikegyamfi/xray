@@ -1,6 +1,9 @@
+import random
 import re
 import secrets
 import json
+import string
+
 import requests
 from datetime import datetime
 from decouple import config
@@ -27,11 +30,13 @@ ishare_map = {
 }
 
 
-def ref_generator():
-    now_time = datetime.now().strftime('%H%M%S')
-    secret = secrets.token_hex(2)
+def ref_generator(length=8):
+    characters = string.ascii_uppercase + string.digits
 
-    return f"{now_time}{secret}".upper()
+    # Generate a random sequence of the specified length
+    reference = ''.join(random.choice(characters) for _ in range(length))
+
+    return reference
 
 
 def top_up_ref_generator():
