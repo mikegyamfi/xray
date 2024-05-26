@@ -1523,6 +1523,7 @@ def paystack_webhook(request):
                         reference=reference,
                     )
                     new_mtn_transaction.save()
+                    print("mtn complete")
                     return HttpResponse(status=200)
                 elif channel == "big-time":
                     new_payment = models.Payment.objects.create(
@@ -1552,6 +1553,7 @@ def paystack_webhook(request):
                         reference=reference,
                     )
                     new_transaction.save()
+                    print("big time complete")
                     return HttpResponse(status=200)
                 elif channel == "afa":
                     phone_number = metadata.get('phone_number')
