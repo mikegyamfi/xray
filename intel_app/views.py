@@ -613,7 +613,7 @@ def big_time(request):
     status = user.status
     form = forms.BigTimeBundleForm(status)
     reference = helper.ref_generator()
-    db_user_id = request.user.id
+    db_user_id = user.id
     user_email = request.user.email
 
     if request.method == "POST":
