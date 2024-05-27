@@ -81,14 +81,6 @@ def pay_with_wallet(request):
         sms_url = 'https://webapp.usmsgh.com/api/sms/send'
         if send_bundle_response.status_code == 200:
             if data["status"] == "Success":
-                new_transaction = models.IShareBundleTransaction.objects.create(
-                    user=request.user,
-                    bundle_number=phone_number,
-                    offer=f"{bundle}MB",
-                    reference=reference,
-                    transaction_status="Completed"
-                )
-                new_transaction.save()
                 user.wallet -= float(amount)
                 user.save()
                 new_wallet_transaction = models.WalletTransaction.objects.create(
@@ -99,6 +91,15 @@ def pay_with_wallet(request):
                     new_balance=user.wallet
                 )
                 new_wallet_transaction.save()
+                new_transaction = models.IShareBundleTransaction.objects.create(
+                    user=request.user,
+                    bundle_number=phone_number,
+                    offer=f"{bundle}MB",
+                    reference=reference,
+                    transaction_status="Completed"
+                )
+                new_transaction.save()
+
                 receiver_message = f"Your bundle purchase has been completed successfully. {bundle}MB has been credited to you by {request.user.phone}.\nReference: {reference}\n"
                 sms_message = f"Hello @{request.user.username}. Your bundle purchase has been completed successfully. {bundle}MB has been credited to {phone_number}.\nReference: {reference}\nCurrent Wallet Balance: {user.wallet}\nThank you for using XRAY GH."
 
@@ -1643,6 +1644,7 @@ def paystack_webhook(request):
                             response1 = requests.get(
                                 f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=Qmt0VHhiTVlTVE5md1lMcEF6VW4&to=0{user.phone}&from=XRAY&sms={sms_message}")
                             print(response1.text)
+                            return HttpResponse(status=200)
                         except:
                             return HttpResponse(status=200)
                     except:
