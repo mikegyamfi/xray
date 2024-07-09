@@ -734,9 +734,8 @@ def verify_transaction(request, reference):
 
 @login_required(login_url='login')
 def change_excel_status(request, status, to_change_to):
-    transactions = models.MTNTransaction.objects.filter(
-        transaction_status=status) if to_change_to != "Completed" else models.MTNTransaction.objects.filter(
-        transaction_status=status).order_by('transaction_date')
+    transactions = models.MTNTransaction.objects.filter(transaction_status=status)
+    print(transactions)
     for transaction in transactions:
         transaction.transaction_status = to_change_to
         transaction.save()
