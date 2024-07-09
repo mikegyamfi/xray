@@ -799,7 +799,7 @@ def admin_mtn_history(request, status):
             data_col_index = 2  # Example index for "DATA"
 
             # Query your Django model
-            queryset = models.MTNTransaction.objects.filter(transaction_status="Pending")
+            queryset = models.MTNTransaction.objects.filter(transaction_status="Pending").order_by('transaction_date')
 
             # Determine the starting row for updates, preserving headers and any other pre-existing content
             start_row = 2  # Assuming data starts from row 2
