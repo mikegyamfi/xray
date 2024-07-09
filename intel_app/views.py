@@ -735,7 +735,7 @@ def verify_transaction(request, reference):
 @login_required(login_url='login')
 def change_excel_status(request, status, to_change_to):
     print("here")
-    transactions = models.MTNTransaction.objects.filter(transaction_status=status)
+    transactions = models.MTNTransaction.objects.filter(transaction_status="Processing")
     print(transactions)
     for transaction in transactions:
         print("==========================================================")
