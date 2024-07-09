@@ -735,13 +735,14 @@ def verify_transaction(request, reference):
 @login_required(login_url='login')
 def change_excel_status(request, status, to_change_to):
     print("here")
+    print(f"{to_change_to}+++++++++++++++++++++++++++++++++++++++++++++++++++++")
     transactions = models.MTNTransaction.objects.filter(transaction_status="Processing")
-    print(transactions)
     for transaction in transactions:
         print("==========================================================")
         print(transaction)
         transaction.transaction_status = to_change_to
         transaction.save()
+        print(transactions.transaction_status)
         if to_change_to == "Completed":
             # transaction_number = transaction.user.phone
             # sms_headers = {
