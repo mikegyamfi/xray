@@ -742,7 +742,7 @@ def change_excel_status(request, status, to_change_to):
         print(transaction)
         transaction.transaction_status = to_change_to
         transaction.save()
-        print(transactions.transaction_status)
+        print(transaction.transaction_status)
         if to_change_to == "Completed":
             # transaction_number = transaction.user.phone
             # sms_headers = {
