@@ -1999,12 +1999,16 @@ def voda_pay_with_wallet(request):
             return JsonResponse(
                 {'status': f'Your wallet balance is low. Contact the admin to recharge.'})
         if user.status == "User":
+            package = models.VodaBundlePrice.objects.get(price=float(amount))
             bundle = models.VodaBundlePrice.objects.get(price=float(amount)).bundle_volume
         elif user.status == "Agent":
+            package = models.AgentVodaBundlePrice.objects.get(price=float(amount))
             bundle = models.AgentVodaBundlePrice.objects.get(price=float(amount)).bundle_volume
         elif user.status == "Super Agent":
+            package = models.SuperAgentVodaBundlePrice.objects.get(price=float(amount))
             bundle = models.SuperAgentVodaBundlePrice.objects.get(price=float(amount)).bundle_volume
         else:
+            package = models.VodaBundlePrice.objects.get(price=float(amount))
             bundle = models.VodaBundlePrice.objects.get(price=float(amount)).bundle_volume
 
         print(bundle)
@@ -2020,21 +2024,24 @@ def voda_pay_with_wallet(request):
         user.save()
 
         if models.AdminInfo.objects.filter().first().telecel_api_active:
-            url = "https://www.geosams.com/api/initiate_telecel_transaction"
+            if package.geosams_active:
+                url = "https://www.geosams.com/api/initiate_telecel_transaction"
 
-            payload = {'receiver': str(phone_number),
-                       'reference': str(reference),
-                       'bundle_volume': str(bundle)}
-            files = [
+                payload = {'receiver': str(phone_number),
+                           'reference': str(reference),
+                           'bundle_volume': str(bundle)}
+                files = [
 
-            ]
-            headers = {
-                'api-key': config("MTN_KEY")
-            }
+                ]
+                headers = {
+                    'api-key': config("MTN_KEY")
+                }
 
-            response = requests.request("POST", url, headers=headers, data=payload, files=files)
+                response = requests.request("POST", url, headers=headers, data=payload, files=files)
 
-            print(response.text)
+                print(response.text)
+            else:
+                pass
         else:
             pass
 

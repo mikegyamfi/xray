@@ -36,6 +36,7 @@
                         <th scope="col">Occupation</th>
                         <th scope="col">Date of Birth</th>
                         <th scope="col">Status</th>
+                        <th scope="col">Date</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -52,6 +53,7 @@
                             {% else %}
                             <td><span class="badge badge-pill badge-danger me-1">{{txn.transaction_status}}</span></td>
                             {% endif %}
+                            <td>{{ txn.transaction_date }}</td>
                         </tr>
                     {% endfor %}
                     </tbody>
