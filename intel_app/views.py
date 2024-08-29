@@ -2023,6 +2023,7 @@ def voda_pay_with_wallet(request):
         user.wallet -= float(amount)
         user.save()
 
+
         if models.AdminInfo.objects.filter().first().telecel_api_active:
             if package.geosams_active:
                 url = "https://www.geosams.com/api/initiate_telecel_transaction"
