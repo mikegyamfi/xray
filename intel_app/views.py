@@ -2019,6 +2019,25 @@ def voda_pay_with_wallet(request):
         user.wallet -= float(amount)
         user.save()
 
+        if models.AdminInfo.objects.filter().first().telecel_api_active:
+            url = "https://www.geosams.com/api/initiate_telecel_transaction"
+
+            payload = {'receiver': str(phone_number),
+                       'reference': str(reference),
+                       'bundle_volume': str(bundle)}
+            files = [
+
+            ]
+            headers = {
+                'api-key': config("MTN_KEY")
+            }
+
+            response = requests.request("POST", url, headers=headers, data=payload, files=files)
+
+            print(response.text)
+        else:
+            pass
+
         # new_wallet_transaction = models.WalletTransaction.objects.create(
         #     user=request.user,
         #     transaction_type="Debit",
