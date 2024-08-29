@@ -48,7 +48,7 @@ class TopUpRequestAdmin(admin.ModelAdmin):
 class WalletTransactionAdmin(admin.ModelAdmin):
     list_display = ['user', 'transaction_type', 'transaction_amount', 'transaction_use', 'new_balance',
                     'transaction_date']
-    search_fields = ['user', 'transaction_type']
+    search_fields = ['user__username', 'transaction_type']
 
 
 class VodafoneTransactionAdmin(admin.ModelAdmin):
