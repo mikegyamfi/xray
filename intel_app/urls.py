@@ -28,6 +28,14 @@ urlpatterns = [
                   path('bt_mark_as_sent/<int:pk>', views.bt_mark_as_sent, name='bt_mark_as_sent'),
                   path('afa_mark_as_sent/<int:pk>', views.afa_mark_as_sent, name='afa_mark_as_sent'),
 
+path('services/voda/', views.voda, name='voda'),
+                  path('history/voda', views.voda_history, name="voda-history"),
+                  path('voda_admin/<str:status>', views.admin_voda_history, name='voda_admin'),
+                  path('voda_excel_status/<str:status>/<str:to_change_to>', views.voda_change_excel_status,
+                       name='voda_excel_status'),
+                  path('voda_mark_as_sent/<int:pk>', views.voda_mark_as_sent, name='voda_mark_as_sent'),
+                  path('voda_pay_with_wallet/', views.voda_pay_with_wallet, name='voda_pay_with_wallet'),
+
                   path('delete', views.delete_custom_users, name='delete'),
 
                   path('credit_user', views.credit_user, name='credit_user'),

@@ -865,7 +865,7 @@ def mark_as_sent(request, pk):
         #     f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=Qmt0VHhiTVlTVE5md1lMcEF6VW4&to=0{txn.user.phone}&from=XRAY&sms={sms_message}")
         # print(response1.text)
 
-        return redirect('mtn_admin')
+        return redirect('mtn_admin', status="Pending")
 
 
 @login_required(login_url='login')
@@ -1815,3 +1815,253 @@ def paystack_webhook(request):
                 return HttpResponse(status=200)
         else:
             return HttpResponse(status=401)
+
+
+@login_required(login_url='login')
+def voda_history(request):
+    user_transactions = models.VodafoneTransaction.objects.filter(user=request.user).order_by(
+        'transaction_date').reverse()[:200]
+    header = "Vodafone Transactions"
+    net = "voda"
+    context = {'txns': user_transactions, "header": header, "net": net}
+    return render(request, "layouts/history.html", context=context)
+
+
+from django.contrib import messages
+from django.shortcuts import redirect, render
+from django.http import HttpResponse
+import csv
+from io import StringIO
+import datetime
+from . import models
+
+
+@login_required(login_url='login')
+def admin_voda_history(request, status):
+    if request.user.is_staff and request.user.is_superuser:
+        if request.method == "POST":
+            from io import BytesIO
+            from openpyxl import load_workbook
+            from django.http import HttpResponse
+            import datetime
+
+            # Assuming `uploaded_file` is the Excel file uploaded by the user
+            uploaded_file = request.FILES['file'] if 'file' in request.FILES else None
+            if not uploaded_file:
+                messages.error(request, "No excel file found")
+                return redirect('voda_admin', status=status)
+
+            # Load the uploaded Excel file into memory
+            excel_buffer = BytesIO(uploaded_file.read())
+            try:
+                book = load_workbook(excel_buffer, data_only=True)
+                sheet = book.active  # Assuming the data is on the active sheet
+            except Exception as e:
+                print(e)
+                messages.error(request, f"Error loading Excel file: {e}")
+                return redirect('voda_admin', status=status)
+
+            # Assuming we have identified the recipient and data column indices
+            recipient_col_index = 1  # Example index for "RECIPIENT"
+            data_col_index = 2  # Example index for "DATA"
+
+            # Query your Django model
+            queryset = models.VodafoneTransaction.objects.filter(transaction_status="Pending").order_by('transaction_date')
+
+            # Determine the starting row for updates, preserving headers and any other pre-existing content
+            start_row = 2  # Assuming data starts from row 2
+
+            for record in queryset:
+                # Assuming 'bundle_number' and 'offer' fields exist in your model
+                recipient_value = f"0{record.bundle_number}"  # Ensure it's a string to preserve formatting
+                data_value = record.offer  # Adjust based on actual field type
+                cleaned_data_value = float(data_value.replace('MB', ''))
+                data_value_gb = round(float(cleaned_data_value) / 1000, 2)
+
+                # Find next available row (avoid overwriting non-empty rows if necessary)
+                while sheet.cell(row=start_row, column=recipient_col_index).value is not None:
+                    start_row += 1
+
+                # Update cells
+                sheet.cell(row=start_row, column=recipient_col_index, value=recipient_value)
+                sheet.cell(row=start_row, column=data_col_index, value=data_value_gb)
+
+                # Update the record status, if necessary
+                record.transaction_status = "Processing"
+                record.save()
+
+            # Save the modified Excel file to the buffer
+            output = BytesIO()
+            try:
+                book.save(output)
+                output.seek(0)
+            except Exception as e:
+                messages.error(request, f"Error saving Excel file: {e}")
+                return redirect('voda_admin', status=status)
+
+            # Prepare the response with the modified Excel file
+            response = HttpResponse(output.getvalue(),
+                                    content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = 'attachment; filename={}.xlsx'.format(
+                datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
+
+            return response
+
+        all_txns = models.VodafoneTransaction.objects.filter(transaction_status=status).order_by('-transaction_date')[
+                   :800]
+        context = {'txns': all_txns, 'status': status}
+        return render(request, "layouts/services/voda_admin.html", context=context)
+    else:
+        messages.error(request, "Access Denied")
+        return redirect('voda_admin', status=status)
+
+
+@login_required(login_url='login')
+def voda_change_excel_status(request, status, to_change_to):
+    transactions = models.VodafoneTransaction.objects.filter(
+        transaction_status=status) if to_change_to != "Completed" else models.VodafoneTransaction.objects.filter(
+        transaction_status=status).order_by('transaction_date')
+    for transaction in transactions:
+        transaction.transaction_status = to_change_to
+        transaction.save()
+    messages.success(request, f"Status changed from {status} to {to_change_to}")
+    return redirect("voda_admin", status=status)
+
+
+@login_required(login_url='login')
+def voda(request):
+    user = models.CustomUser.objects.get(id=request.user.id)
+    status = user.status
+    form = forms.VodaBundleForm(status)
+    reference = helper.ref_generator()
+    user_email = request.user.email
+
+    if request.method == "POST":
+        payment_reference = request.POST.get("reference")
+        amount_paid = request.POST.get("amount")
+        new_payment = models.Payment.objects.create(
+            user=request.user,
+            reference=payment_reference,
+            amount=amount_paid,
+            transaction_date=datetime.now(),
+            transaction_status="Pending"
+        )
+        new_payment.save()
+        phone_number = request.POST.get("phone")
+        offer = request.POST.get("amount")
+        if user.status == "User":
+            bundle = models.VodaBundlePrice.objects.get(price=float(offer)).bundle_volume
+        elif user.status == "Agent":
+            bundle = models.AgentVodaBundlePrice.objects.get(price=float(offer)).bundle_volume
+        elif user.status == "Super Agent":
+            bundle = models.SuperAgentVodaBundlePrice.objects.get(price=float(offer)).bundle_volume
+        else:
+            bundle = models.VodaBundlePrice.objects.get(price=float(offer)).bundle_volume
+
+        print(phone_number)
+        new_mtn_transaction = models.VodafoneTransaction.objects.create(
+            user=request.user,
+            bundle_number=phone_number,
+            offer=f"{bundle}MB",
+            reference=payment_reference,
+        )
+        new_mtn_transaction.save()
+        return JsonResponse({'status': "Your transaction will be completed shortly", 'icon': 'success'})
+    user = models.CustomUser.objects.get(id=request.user.id)
+    # phone_num = user.phone
+    # mtn_dict = {}
+    #
+    # if user.status == "Agent":
+    #     mtn_offer = models.AgentMTNBundlePrice.objects.all()
+    # else:
+    #     mtn_offer = models.MTNBundlePrice.objects.all()
+    # for offer in mtn_offer:
+    #     mtn_dict[str(offer)] = offer.bundle_volume
+    context = {'form': form,
+               "ref": reference, "email": user_email, "wallet": 0 if user.wallet is None else user.wallet}
+    return render(request, "layouts/services/voda.html", context=context)
+
+
+@login_required(login_url='login')
+def voda_pay_with_wallet(request):
+    if request.method == "POST":
+        user = models.CustomUser.objects.get(id=request.user.id)
+        phone_number = request.POST.get("phone")
+        amount = request.POST.get("amount")
+        reference = request.POST.get("reference")
+        print(phone_number)
+        print(amount)
+        print(reference)
+        if user.wallet is None:
+            return JsonResponse(
+                {'status': f'Your wallet balance is low. Contact the admin to recharge.'})
+        elif user.wallet <= 0 or user.wallet < float(amount):
+            return JsonResponse(
+                {'status': f'Your wallet balance is low. Contact the admin to recharge.'})
+        if user.status == "User":
+            bundle = models.VodaBundlePrice.objects.get(price=float(amount)).bundle_volume
+        elif user.status == "Agent":
+            bundle = models.AgentVodaBundlePrice.objects.get(price=float(amount)).bundle_volume
+        elif user.status == "Super Agent":
+            bundle = models.SuperAgentVodaBundlePrice.objects.get(price=float(amount)).bundle_volume
+        else:
+            bundle = models.VodaBundlePrice.objects.get(price=float(amount)).bundle_volume
+
+        print(bundle)
+        new_mtn_transaction = models.VodafoneTransaction.objects.create(
+            user=request.user,
+            bundle_number=phone_number,
+            offer=f"{bundle}MB",
+            reference=reference,
+        )
+        new_mtn_transaction.save()
+
+        user.wallet -= float(amount)
+        user.save()
+
+        # new_wallet_transaction = models.WalletTransaction.objects.create(
+        #     user=request.user,
+        #     transaction_type="Debit",
+        #     transaction_amount=float(amount),
+        #     transaction_use="Telecel",
+        #     new_balance=user.wallet
+        # )
+        # new_wallet_transaction.save()
+        #
+        # new_profit_instance = models.ProfitInstance.objects.create(
+        #     selling_price_total=amount,
+        #     channel="Telecel",  # Set your channel here based on user status
+        # )
+        # new_profit_instance.save()
+        return JsonResponse({'status': "Your transaction will be completed shortly", 'icon': 'success'})
+    return redirect('voda')
+
+
+@login_required(login_url='login')
+def voda_mark_as_sent(request, pk):
+    if request.user.is_staff and request.user.is_superuser:
+        txn = models.VodafoneTransaction.objects.filter(id=pk).first()
+        print(txn)
+        txn.transaction_status = "Completed"
+        txn.save()
+        sms_headers = {
+            'Authorization': 'Bearer 1136|LwSl79qyzTZ9kbcf9SpGGl1ThsY0Ujf7tcMxvPze',
+            'Content-Type': 'application/json'
+        }
+
+        sms_url = 'https://webapp.usmsgh.com/api/sms/send'
+        sms_message = f"Your Vodafone transaction has been completed. {txn.bundle_number} has been credited with {txn.offer}.\nTransaction Reference: {txn.reference}"
+
+        sms_body = {
+            'recipient': f"233{txn.user.phone}",
+            'sender_id': 'Geosams',
+            'message': sms_message
+        }
+        try:
+            response = requests.request('POST', url=sms_url, params=sms_body, headers=sms_headers)
+            print(response.text)
+        except Exception as e:
+            print(e)
+        messages.success(request, f"Transaction Completed")
+        return redirect('voda_admin')
+
