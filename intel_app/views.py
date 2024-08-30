@@ -329,7 +329,8 @@ def airtel_tigo(request):
     #         # print(response.text)
     #         return JsonResponse({'status': 'Something went wrong', 'icon': 'error'})
     user = models.CustomUser.objects.get(id=request.user.id)
-    context = {"form": form, "ref": reference, "email": user_email, 'id': db_user_id, "wallet": 0 if user.wallet is None else user.wallet}
+    context = {"form": form, "ref": reference, "email": user_email, 'id': db_user_id,
+               "wallet": 0 if user.wallet is None else user.wallet}
     return render(request, "layouts/services/at.html", context=context)
 
 
@@ -499,7 +500,8 @@ def mtn(request):
 
             return redirect(checkoutUrl)
     user = models.CustomUser.objects.get(id=request.user.id)
-    context = {'form': form, "ref": reference, "email": user_email, 'id': db_user_id, "wallet": 0 if user.wallet is None else user.wallet}
+    context = {'form': form, "ref": reference, "email": user_email, 'id': db_user_id,
+               "wallet": 0 if user.wallet is None else user.wallet}
     return render(request, "layouts/services/mtn.html", context=context)
 
 
@@ -670,7 +672,8 @@ def big_time(request):
     # for offer in mtn_offer:
     #     mtn_dict[str(offer)] = offer.bundle_volume
     context = {'form': form,
-               "ref": reference, "email": user_email, 'db_id': db_user_id, "wallet": 0 if user.wallet is None else user.wallet}
+               "ref": reference, "email": user_email, 'db_id': db_user_id,
+               "wallet": 0 if user.wallet is None else user.wallet}
     return render(request, "layouts/services/big_time.html", context=context)
 
 
@@ -824,10 +827,6 @@ def admin_mtn_history(request, status):
     else:
         messages.error(request, "Access Denied")
         return redirect('mtn_admin', status=status)
-
-
-
-
 
 
 @login_required(login_url='login')
@@ -1866,7 +1865,8 @@ def admin_voda_history(request, status):
             data_col_index = 2  # Example index for "DATA"
 
             # Query your Django model
-            queryset = models.VodafoneTransaction.objects.filter(transaction_status="Pending").order_by('transaction_date')
+            queryset = models.VodafoneTransaction.objects.filter(transaction_status="Pending").order_by(
+                'transaction_date')
 
             # Determine the starting row for updates, preserving headers and any other pre-existing content
             start_row = 2  # Assuming data starts from row 2
@@ -2023,8 +2023,8 @@ def voda_pay_with_wallet(request):
         user.wallet -= float(amount)
         user.save()
 
-
         if models.AdminInfo.objects.filter().first().telecel_api_active:
+            print("was active")
             if package.geosams_active:
                 url = "https://www.geosams.com/api/initiate_telecel_transaction"
 
@@ -2042,8 +2042,10 @@ def voda_pay_with_wallet(request):
 
                 print(response.text)
             else:
+                print("bundle not part of transfer")
                 pass
         else:
+            print("telecel transfer not active")
             pass
 
         # new_wallet_transaction = models.WalletTransaction.objects.create(
@@ -2091,4 +2093,3 @@ def voda_mark_as_sent(request, pk):
             print(e)
         messages.success(request, f"Transaction Completed")
         return redirect('voda_admin')
-
