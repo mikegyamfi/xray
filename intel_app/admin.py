@@ -29,12 +29,12 @@ class CustomUserAdmin(ExportActionMixin, UserAdmin):
 
 class IShareBundleTransactionAdmin(admin.ModelAdmin):
     list_display = ['user', 'bundle_number', 'offer', 'reference', 'transaction_status', 'transaction_date']
-    search_fields = ['reference', 'bundle_number']
+    search_fields = ['reference', 'bundle_number', 'user__username']
 
 
 class MTNTransactionAdmin(ExportActionMixin, admin.ModelAdmin):
     list_display = ['user', 'bundle_number', 'offer', 'reference', 'transaction_status', 'transaction_date']
-    search_fields = ['reference', 'bundle_number']
+    search_fields = ['reference', 'bundle_number', 'user__username']
 
 
 class PaymentAdmin(admin.ModelAdmin):
