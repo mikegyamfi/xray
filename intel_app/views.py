@@ -1483,7 +1483,7 @@ def paystack_webhook(request):
                 #     percentage = 2/100
                 #     rounded_paid_amount -= percentage
 
-                is_within_range = (rounded_real_amount - 3) <= rounded_paid_amount <= (rounded_real_amount + 3)
+                is_within_range = (rounded_real_amount - 20) <= rounded_paid_amount <= (rounded_real_amount + 20)
 
                 if not is_within_range:
                     sms_headers = {
