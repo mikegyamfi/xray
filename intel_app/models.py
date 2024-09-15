@@ -39,6 +39,12 @@ class AdminInfo(models.Model):
     payment_channell = models.CharField(max_length=250, choices=choices)
     afa_price = models.FloatField(null=True, blank=True)
     telecel_api_active = models.BooleanField(default=False)
+    ishare_choices = (
+        ("Controller", "Controller"),
+        ("Value4Moni", "Value4Moni"),
+    )
+    ishare_source = models.CharField(max_length=250, null=True, blank=True, choices=ishare_choices,
+                                     default="Value4Moni")
 
 
 class IShareBundleTransaction(models.Model):

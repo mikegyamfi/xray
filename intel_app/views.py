@@ -66,72 +66,84 @@ def pay_with_wallet(request):
         # }
         #
         # sms_url = 'https://webapp.usmsgh.com/api/sms/send'
-        send_bundle_response = helper.send_bundle(phone_number, bundle, reference)
-        try:
-            data = send_bundle_response.json()
-            print(data)
-        except:
-            return JsonResponse({'status': f'Something went wrong'})
-
-        sms_headers = {
-            'Authorization': 'Bearer 1334|wroIm5YnQD6hlZzd8POtLDXxl4vQodCZNorATYGX',
-            'Content-Type': 'application/json'
-        }
-
         sms_url = 'https://webapp.usmsgh.com/api/sms/send'
-        if send_bundle_response.status_code == 200:
-            if data["status"] == "Success":
-                user.wallet -= float(amount)
-                user.save()
-                new_wallet_transaction = models.WalletTransaction.objects.create(
-                    user=request.user,
-                    transaction_type="Debit",
-                    transaction_amount=float(amount),
-                    transaction_use="AT",
-                    new_balance=user.wallet
-                )
-                new_wallet_transaction.save()
-                new_transaction = models.IShareBundleTransaction.objects.create(
-                    user=request.user,
-                    bundle_number=phone_number,
-                    offer=f"{bundle}MB",
-                    reference=reference,
-                    transaction_status="Completed"
-                )
-                new_transaction.save()
+        ishare_choice = models.AdminInfo.objects.filter().first().ishare_source
 
-                receiver_message = f"Your bundle purchase has been completed successfully. {bundle}MB has been credited to you by {request.user.phone}.\nReference: {reference}\n"
-                sms_message = f"Hello @{request.user.username}. Your bundle purchase has been completed successfully. {bundle}MB has been credited to {phone_number}.\nReference: {reference}\nCurrent Wallet Balance: {user.wallet}\nThank you for using XRAY GH."
+        if ishare_choice == "Controller":
+            send_bundle_response = helper.send_bundle(phone_number, bundle, reference)
+            try:
+                data = send_bundle_response.json()
+                print(data)
+            except:
+                return JsonResponse({'status': f'Something went wrong'})
 
-                # num_without_0 = phone_number[1:]
-                # print(num_without_0)
-                # receiver_body = {
-                #     'recipient': f"233{num_without_0}",
-                #     'sender_id': 'XRAY GH',
-                #     'message': receiver_message
-                # }
-                #
-                # response = requests.request('POST', url=sms_url, params=receiver_body, headers=sms_headers)
-                # print(response.text)
-                #
-                # sms_body = {
-                #     'recipient': f"233{request.user.phone}",
-                #     'sender_id': 'XRAY GH',
-                #     'message': sms_message
-                # }
-                #
-                # response = requests.request('POST', url=sms_url, params=sms_body, headers=sms_headers)
-                #
-                # print(response.text)
-                response1 = requests.get(
-                    f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=Qmt0VHhiTVlTVE5md1lMcEF6VW4&to=0{request.user.phone}&from=XRAY&sms={sms_message}")
-                print(response1.text)
+            sms_headers = {
+                'Authorization': 'Bearer 1334|wroIm5YnQD6hlZzd8POtLDXxl4vQodCZNorATYGX',
+                'Content-Type': 'application/json'
+            }
+            if send_bundle_response.status_code == 200:
+                if data["status"] == "Success":
+                    user.wallet -= float(amount)
+                    user.save()
+                    new_wallet_transaction = models.WalletTransaction.objects.create(
+                        user=request.user,
+                        transaction_type="Debit",
+                        transaction_amount=float(amount),
+                        transaction_use="AT",
+                        new_balance=user.wallet
+                    )
+                    new_wallet_transaction.save()
+                    new_transaction = models.IShareBundleTransaction.objects.create(
+                        user=request.user,
+                        bundle_number=phone_number,
+                        offer=f"{bundle}MB",
+                        reference=reference,
+                        transaction_status="Completed"
+                    )
+                    new_transaction.save()
 
-                response2 = requests.get(
-                    f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=Qmt0VHhiTVlTVE5md1lMcEF6VW4&to={phone_number}&from=XRAY&sms={receiver_message}")
-                print(response2.text)
+                    receiver_message = f"Your bundle purchase has been completed successfully. {bundle}MB has been credited to you by {request.user.phone}.\nReference: {reference}\n"
+                    sms_message = f"Hello @{request.user.username}. Your bundle purchase has been completed successfully. {bundle}MB has been credited to {phone_number}.\nReference: {reference}\nCurrent Wallet Balance: {user.wallet}\nThank you for using XRAY GH."
 
-                return JsonResponse({'status': 'Transaction Completed Successfully', 'icon': 'success'})
+                    # num_without_0 = phone_number[1:]
+                    # print(num_without_0)
+                    # receiver_body = {
+                    #     'recipient': f"233{num_without_0}",
+                    #     'sender_id': 'XRAY GH',
+                    #     'message': receiver_message
+                    # }
+                    #
+                    # response = requests.request('POST', url=sms_url, params=receiver_body, headers=sms_headers)
+                    # print(response.text)
+                    #
+                    # sms_body = {
+                    #     'recipient': f"233{request.user.phone}",
+                    #     'sender_id': 'XRAY GH',
+                    #     'message': sms_message
+                    # }
+                    #
+                    # response = requests.request('POST', url=sms_url, params=sms_body, headers=sms_headers)
+                    #
+                    # print(response.text)
+                    response1 = requests.get(
+                        f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=Qmt0VHhiTVlTVE5md1lMcEF6VW4&to=0{request.user.phone}&from=XRAY&sms={sms_message}")
+                    print(response1.text)
+
+                    response2 = requests.get(
+                        f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=Qmt0VHhiTVlTVE5md1lMcEF6VW4&to={phone_number}&from=XRAY&sms={receiver_message}")
+                    print(response2.text)
+
+                    return JsonResponse({'status': 'Transaction Completed Successfully', 'icon': 'success'})
+                else:
+                    new_transaction = models.IShareBundleTransaction.objects.create(
+                        user=request.user,
+                        bundle_number=phone_number,
+                        offer=f"{bundle}MB",
+                        reference=reference,
+                        transaction_status="Failed"
+                    )
+                    new_transaction.save()
+                    return JsonResponse({'status': 'Something went wrong', 'icon': 'error'})
             else:
                 new_transaction = models.IShareBundleTransaction.objects.create(
                     user=request.user,
@@ -142,16 +154,91 @@ def pay_with_wallet(request):
                 )
                 new_transaction.save()
                 return JsonResponse({'status': 'Something went wrong', 'icon': 'error'})
-        else:
-            new_transaction = models.IShareBundleTransaction.objects.create(
-                user=request.user,
-                bundle_number=phone_number,
-                offer=f"{bundle}MB",
-                reference=reference,
-                transaction_status="Failed"
-            )
-            new_transaction.save()
-            return JsonResponse({'status': 'Something went wrong', 'icon': 'error'})
+        elif ishare_choice == "Value4Moni":
+            send_bundle_response = helper.value_for_moni_send_bundle(phone_number, bundle, reference)
+            try:
+                data = send_bundle_response.json()
+                print(data)
+            except:
+                return JsonResponse({'status': f'Something went wrong'})
+
+            sms_headers = {
+                'Authorization': 'Bearer 1334|wroIm5YnQD6hlZzd8POtLDXxl4vQodCZNorATYGX',
+                'Content-Type': 'application/json'
+            }
+            if send_bundle_response.status_code == 200:
+                if data['code'] == "200":
+                    user.wallet -= float(amount)
+                    user.save()
+                    new_wallet_transaction = models.WalletTransaction.objects.create(
+                        user=request.user,
+                        transaction_type="Debit",
+                        transaction_amount=float(amount),
+                        transaction_use="AT",
+                        new_balance=user.wallet
+                    )
+                    new_wallet_transaction.save()
+                    new_transaction = models.IShareBundleTransaction.objects.create(
+                        user=request.user,
+                        bundle_number=phone_number,
+                        offer=f"{bundle}MB",
+                        reference=reference,
+                        transaction_status="Completed"
+                    )
+                    new_transaction.save()
+
+                    receiver_message = f"Your bundle purchase has been completed successfully. {bundle}MB has been credited to you by {request.user.phone}.\nReference: {reference}\n"
+                    sms_message = f"Hello @{request.user.username}. Your bundle purchase has been completed successfully. {bundle}MB has been credited to {phone_number}.\nReference: {reference}\nCurrent Wallet Balance: {user.wallet}\nThank you for using XRAY GH."
+
+                    # num_without_0 = phone_number[1:]
+                    # print(num_without_0)
+                    # receiver_body = {
+                    #     'recipient': f"233{num_without_0}",
+                    #     'sender_id': 'XRAY GH',
+                    #     'message': receiver_message
+                    # }
+                    #
+                    # response = requests.request('POST', url=sms_url, params=receiver_body, headers=sms_headers)
+                    # print(response.text)
+                    #
+                    # sms_body = {
+                    #     'recipient': f"233{request.user.phone}",
+                    #     'sender_id': 'XRAY GH',
+                    #     'message': sms_message
+                    # }
+                    #
+                    # response = requests.request('POST', url=sms_url, params=sms_body, headers=sms_headers)
+                    #
+                    # print(response.text)
+                    response1 = requests.get(
+                        f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=Qmt0VHhiTVlTVE5md1lMcEF6VW4&to=0{request.user.phone}&from=XRAY&sms={sms_message}")
+                    print(response1.text)
+
+                    response2 = requests.get(
+                        f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=Qmt0VHhiTVlTVE5md1lMcEF6VW4&to={phone_number}&from=XRAY&sms={receiver_message}")
+                    print(response2.text)
+
+                    return JsonResponse({'status': 'Transaction Completed Successfully', 'icon': 'success'})
+                else:
+                    new_transaction = models.IShareBundleTransaction.objects.create(
+                        user=request.user,
+                        bundle_number=phone_number,
+                        offer=f"{bundle}MB",
+                        reference=reference,
+                        transaction_status="Failed"
+                    )
+                    new_transaction.save()
+                    return JsonResponse({'status': 'Something went wrong', 'icon': 'error'})
+            else:
+                new_transaction = models.IShareBundleTransaction.objects.create(
+                    user=request.user,
+                    bundle_number=phone_number,
+                    offer=f"{bundle}MB",
+                    reference=reference,
+                    transaction_status="Failed"
+                )
+                new_transaction.save()
+                return JsonResponse({'status': 'Something went wrong', 'icon': 'error'})
     return redirect('airtel-tigo')
 
 
