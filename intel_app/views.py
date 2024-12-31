@@ -4,6 +4,7 @@ from datetime import datetime
 
 from decouple import config
 from django.contrib.auth.forms import PasswordResetForm
+from django.db import transaction
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
 import requests
@@ -82,25 +83,26 @@ def pay_with_wallet(request):
                 'Content-Type': 'application/json'
             }
             if send_bundle_response.status_code == 200:
-                if data["status"] == "Success":
-                    user.wallet -= float(amount)
-                    user.save()
-                    new_wallet_transaction = models.WalletTransaction.objects.create(
-                        user=request.user,
-                        transaction_type="Debit",
-                        transaction_amount=float(amount),
-                        transaction_use="AT",
-                        new_balance=user.wallet
-                    )
-                    new_wallet_transaction.save()
-                    new_transaction = models.IShareBundleTransaction.objects.create(
-                        user=request.user,
-                        bundle_number=phone_number,
-                        offer=f"{bundle}MB",
-                        reference=reference,
-                        transaction_status="Completed"
-                    )
-                    new_transaction.save()
+                if data["code"] == "200":
+                    with transaction.atomic():
+                        user.wallet -= float(amount)
+                        user.save()
+                        new_wallet_transaction = models.WalletTransaction.objects.create(
+                            user=request.user,
+                            transaction_type="Debit",
+                            transaction_amount=float(amount),
+                            transaction_use="AT",
+                            new_balance=user.wallet
+                        )
+                        new_wallet_transaction.save()
+                        new_transaction = models.IShareBundleTransaction.objects.create(
+                            user=request.user,
+                            bundle_number=phone_number,
+                            offer=f"{bundle}MB",
+                            reference=reference,
+                            transaction_status="Completed"
+                        )
+                        new_transaction.save()
 
                     receiver_message = f"Your bundle purchase has been completed successfully. {bundle}MB has been credited to you by {request.user.phone}.\nReference: {reference}\n"
                     sms_message = f"Hello @{request.user.username}. Your bundle purchase has been completed successfully. {bundle}MB has been credited to {phone_number}.\nReference: {reference}\nCurrent Wallet Balance: {user.wallet}\nThank you for using XRAY GH."
@@ -867,7 +869,7 @@ def admin_mtn_history(request, status):
             data_col_index = 2  # Example index for "DATA"
 
             # Query your Django model
-            queryset = models.MTNTransaction.objects.filter(transaction_status="Pending").order_by('transaction_date')
+            queryset = models.MTNTransaction.objects.filter(transaction_status="Pending").order_by('transaction_date')[:40]
 
             # Determine the starting row for updates, preserving headers and any other pre-existing content
             start_row = 2  # Assuming data starts from row 2
@@ -1625,7 +1627,7 @@ def paystack_webhook(request):
 
                         sms_url = 'https://webapp.usmsgh.com/api/sms/send'
                         if send_bundle_response.status_code == 200:
-                            if data["status"] == "Success":
+                            if data["code"] == "200":
                                 new_transaction = models.IShareBundleTransaction.objects.create(
                                     user=user,
                                     bundle_number=receiver,
@@ -1953,7 +1955,7 @@ def admin_voda_history(request, status):
 
             # Query your Django model
             queryset = models.VodafoneTransaction.objects.filter(transaction_status="Pending").order_by(
-                'transaction_date')
+                'transaction_date')[:40]
 
             # Determine the starting row for updates, preserving headers and any other pre-existing content
             start_row = 2  # Assuming data starts from row 2
