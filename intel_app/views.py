@@ -37,7 +37,7 @@ def pay_with_wallet(request):
         user = models.CustomUser.objects.get(id=request.user.id)
         phone_number = request.POST.get("phone")
         amount = request.POST.get("amount")
-        reference = request.POST.get("reference")
+        reference = f"X_{request.POST.get("reference")}_RAY"
         if user.wallet is None:
             return JsonResponse(
                 {'status': f'Your wallet balance is low. Contact the admin to recharge. Admin Contact Info: 0{admin}'})
