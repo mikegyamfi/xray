@@ -29,13 +29,32 @@ ishare_map = {
     560: 200000
 }
 
+import random
+import string
+import time
+import hashlib
 
-def ref_generator(length=8):
+
+def ref_generator(length=15):
+    # Ensure the length is at least long enough to accommodate the randomness
+    if length < 15:
+        raise ValueError("Length must be at least 15 characters.")
+
+    # Current time in nanoseconds to ensure uniqueness
+    timestamp = str(int(time.time() * 1e9))
+
+    # Random characters
     characters = string.ascii_uppercase + string.digits
+    random_part = ''.join(random.choices(characters, k=length - 5))
 
-    # Generate a random sequence of the specified length
-    reference = ''.join(random.choice(characters) for _ in range(length))
+    # Combine timestamp and random part
+    base_ref = timestamp + random_part
 
+    # Hash the base reference for additional uniqueness
+    hashed_ref = hashlib.sha256(base_ref.encode()).hexdigest()
+
+    # Return the first `length` characters of the hashed reference
+    reference = hashed_ref[:length].upper()
     return reference
 
 
