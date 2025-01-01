@@ -55,7 +55,7 @@ def ref_generator(length=15):
 
     # Return the first `length` characters of the hashed reference
     reference = hashed_ref[:length].upper()
-    return reference
+    return f"X_{reference}_RAY"
 
 
 def top_up_ref_generator():
