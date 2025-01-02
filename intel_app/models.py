@@ -51,7 +51,7 @@ class IShareBundleTransaction(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     bundle_number = models.BigIntegerField(null=False, blank=False)
     offer = models.CharField(max_length=250, null=False, blank=False)
-    reference = models.CharField(max_length=20, null=False, blank=True)
+    reference = models.CharField(max_length=250, null=False, blank=True)
     transaction_date = models.DateTimeField(auto_now_add=True)
     transaction_status = models.CharField(max_length=100, null=False)
     description = models.CharField(max_length=500, null=True, blank=True)
@@ -94,7 +94,7 @@ class MTNTransaction(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     bundle_number = models.BigIntegerField(null=False, blank=False)
     offer = models.CharField(max_length=250, null=False, blank=False)
-    reference = models.CharField(max_length=20, null=False, blank=True)
+    reference = models.CharField(max_length=250, null=False, blank=True)
     transaction_date = models.DateTimeField(auto_now_add=True)
     choices = (
         ("Pending", "Pending"),
@@ -173,7 +173,7 @@ class BigTimeTransaction(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     bundle_number = models.BigIntegerField(null=False, blank=False)
     offer = models.CharField(max_length=250, null=False, blank=False)
-    reference = models.CharField(max_length=20, null=False, blank=True)
+    reference = models.CharField(max_length=250, null=False, blank=True)
     transaction_date = models.DateTimeField(auto_now_add=True)
     choices = (
         ("Pending", "Pending"),
@@ -193,7 +193,7 @@ class AFARegistration(models.Model):
     gh_card_number = models.CharField(null=False, blank=False, max_length=256)
     name = models.CharField(max_length=250, null=False, blank=False)
     occupation = models.CharField(max_length=20, null=False, blank=True)
-    reference = models.CharField(max_length=20, null=False, blank=True)
+    reference = models.CharField(max_length=250, null=False, blank=True)
     date_of_birth = models.DateField(null=False, blank=False)
     choices = (
         ("Pending", "Pending"),
@@ -297,7 +297,7 @@ class VodafoneTransaction(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     bundle_number = models.BigIntegerField(null=False, blank=False)
     offer = models.CharField(max_length=250, null=False, blank=False)
-    reference = models.CharField(max_length=20, null=False, blank=True)
+    reference = models.CharField(max_length=250, null=False, blank=True)
     transaction_date = models.DateTimeField(auto_now_add=True)
     choices = (
         ("Pending", "Pending"),
