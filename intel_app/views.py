@@ -2115,21 +2115,25 @@ def voda_pay_with_wallet(request):
         if models.AdminInfo.objects.filter().first().telecel_api_active:
             print("was active")
             if package.geosams_active:
-                url = "https://www.geosams.com/api/initiate_telecel_transaction"
+                try:
+                    url = "https://testhub.geosams.com/controller/api/send_bundle/"
 
-                payload = {'receiver': str(phone_number),
-                           'reference': str(reference),
-                           'bundle_volume': str(bundle)}
-                files = [
+                    payload = json.dumps({
+                        "phone_number": str(phone_number),
+                        "amount": int(bundle),
+                        "reference": str(reference),
+                        "network": "Telecel"
+                    })
 
-                ]
-                headers = {
-                    'api-key': config("MTN_KEY")
-                }
+                    headers = {
+                        'Authorization': config("CONTROLLER_TOKEN"),
+                        'Content-Type': 'application/json'
+                    }
 
-                response = requests.request("POST", url, headers=headers, data=payload, files=files)
-
-                print(response.text)
+                    response = requests.request("POST", url, headers=headers, data=payload)
+                    print(response.text)
+                except Exception as e:
+                    print(e)
             else:
                 print("bundle not part of transfer")
                 pass
