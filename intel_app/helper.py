@@ -33,7 +33,7 @@ import random
 import string
 import time
 import hashlib
-import models
+from .models import MTNTransaction
 
 
 def ref_generator(length=15):
@@ -57,6 +57,12 @@ def ref_generator(length=15):
     # Return the first `length` characters of the hashed reference
     reference = hashed_ref[:length].upper()
     return f"X_{reference}_RAY"
+
+
+import random
+import string
+import time
+import hashlib
 
 
 def mtn_ref_generator(length=20):
@@ -91,7 +97,7 @@ def mtn_ref_generator(length=20):
         new_ref = f"X_MTN{core_reference}_RAY"
 
         # Check if this reference already exists in the database
-        if not models.MTNTransaction.objects.filter(reference=new_ref).exists():
+        if not MTNTransaction.objects.filter(reference=new_ref).exists():
             return new_ref
 
 
