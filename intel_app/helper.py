@@ -33,6 +33,7 @@ import random
 import string
 import time
 import hashlib
+import models
 
 
 def ref_generator(length=15):
@@ -56,6 +57,42 @@ def ref_generator(length=15):
     # Return the first `length` characters of the hashed reference
     reference = hashed_ref[:length].upper()
     return f"X_{reference}_RAY"
+
+
+def mtn_ref_generator(length=20):
+    """
+    Generates a unique reference of the format:
+    'X_MTN{<HASHED_PART>}_RAY'
+
+    Uses current time + random characters + SHA-256 hashing to
+    reduce collisions. Checks the database to ensure the reference
+    doesn't already exist.
+    """
+    if length < 15:
+        raise ValueError("Length must be at least 15 characters.")
+
+    while True:
+        # Current time in nanoseconds to ensure (near) uniqueness
+        timestamp = str(int(time.time() * 1e9))
+
+        # Random characters
+        characters = string.ascii_uppercase + string.digits
+        random_part = ''.join(random.choices(characters, k=length - 5))
+
+        # Combine timestamp and random part
+        base_ref = timestamp + random_part
+
+        # Hash the base reference for additional uniqueness
+        hashed_ref = hashlib.sha256(base_ref.encode()).hexdigest()
+        # Take the first `length` characters and uppercase
+        core_reference = hashed_ref[:length].upper()
+
+        # Final format
+        new_ref = f"X_MTN{core_reference}_RAY"
+
+        # Check if this reference already exists in the database
+        if not models.MTNTransaction.objects.filter(reference=new_ref).exists():
+            return new_ref
 
 
 def top_up_ref_generator():

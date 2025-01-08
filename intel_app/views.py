@@ -538,7 +538,7 @@ def mtn(request):
     status = user.status
     form = forms.MTNForm(status)
     db_user_id = request.user.id
-    reference = helper.ref_generator()
+    reference = helper.mtn_ref_generator()
     user_email = request.user.email
     admin = models.AdminInfo.objects.filter().first().phone_number
     if request.method == "POST":
