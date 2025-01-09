@@ -431,15 +431,13 @@ def mtn_pay_with_wallet(request):
         phone_number = request.POST.get("phone")
         amount = request.POST.get("amount")
         reference = request.POST.get("reference")
+
+        if models.MTNTransaction.objects.filter(reference=reference).exists():
+            return redirect('mtn')
         print(phone_number)
         print(amount)
         print(reference)
-        sms_headers = {
-            'Authorization': 'Bearer 1136|LwSl79qyzTZ9kbcf9SpGGl1ThsY0Ujf7tcMxvPze',
-            'Content-Type': 'application/json'
-        }
 
-        sms_url = 'https://webapp.usmsgh.com/api/sms/send'
         admin = models.AdminInfo.objects.filter().first().phone_number
 
         if user.wallet is None:
@@ -457,31 +455,25 @@ def mtn_pay_with_wallet(request):
         else:
             bundle = models.MTNBundlePrice.objects.get(price=float(amount)).bundle_volume
         print(bundle)
-        sms_message = f"An order has been placed. {bundle}MB for {phone_number}"
-        new_mtn_transaction = models.MTNTransaction.objects.create(
-            user=request.user,
-            bundle_number=phone_number,
-            offer=f"{bundle}MB",
-            reference=reference,
-        )
-        new_mtn_transaction.save()
-        user.wallet -= float(amount)
-        user.save()
-        new_wallet_transaction = models.WalletTransaction.objects.create(
-            user=request.user,
-            transaction_type="Debit",
-            transaction_amount=float(amount),
-            transaction_use="MTN",
-            new_balance=user.wallet
-        )
-        new_wallet_transaction.save()
-        sms_body = {
-            'recipient': f"233{admin}",
-            'sender_id': 'Geosams',
-            'message': sms_message
-        }
-        # response = requests.request('POST', url=sms_url, params=sms_body, headers=sms_headers)
-        # print(response.text)
+
+        with transaction.atomic():
+            new_mtn_transaction = models.MTNTransaction.objects.create(
+                user=request.user,
+                bundle_number=phone_number,
+                offer=f"{bundle}MB",
+                reference=reference,
+            )
+            new_mtn_transaction.save()
+            user.wallet -= float(amount)
+            user.save()
+            new_wallet_transaction = models.WalletTransaction.objects.create(
+                user=request.user,
+                transaction_type="Debit",
+                transaction_amount=float(amount),
+                transaction_use="MTN",
+                new_balance=user.wallet
+            )
+            new_wallet_transaction.save()
         return JsonResponse({'status': "Your transaction will be completed shortly", 'icon': 'success'})
     return redirect('mtn')
 
@@ -1599,65 +1591,76 @@ def paystack_webhook(request):
                     return HttpResponse(200)
 
                 if channel == "ishare":
-                    if user.status == "User":
-                        bundle = models.IshareBundlePrice.objects.get(price=float(real_amount)).bundle_volume
-                    elif user.status == "Agent":
-                        bundle = models.AgentIshareBundlePrice.objects.get(price=float(real_amount)).bundle_volume
-                    elif user.status == "Super Agent":
-                        bundle = models.SuperAgentIshareBundlePrice.objects.get(price=float(real_amount)).bundle_volume
-                    else:
-                        bundle = models.IshareBundlePrice.objects.get(price=float(real_amount)).bundle_volume
+                    try:
+                        if user.status == "User":
+                            bundle = models.IshareBundlePrice.objects.get(price=float(real_amount)).bundle_volume
+                        elif user.status == "Agent":
+                            bundle = models.AgentIshareBundlePrice.objects.get(price=float(real_amount)).bundle_volume
+                        elif user.status == "Super Agent":
+                            bundle = models.SuperAgentIshareBundlePrice.objects.get(price=float(real_amount)).bundle_volume
+                        else:
+                            bundle = models.IshareBundlePrice.objects.get(price=float(real_amount)).bundle_volume
 
-                    if models.IShareBundleTransaction.objects.filter(reference=reference, offer=f"{bundle}MB",
-                                                                     transaction_status="Completed").exists():
-                        return HttpResponse(status=200)
-
-                    else:
-                        send_bundle_response = helper.send_bundle(receiver, bundle, reference)
-                        try:
-                            data = send_bundle_response.json()
-                            print(data)
-                        except:
+                        if models.IShareBundleTransaction.objects.filter(reference=reference, offer=f"{bundle}MB",
+                                                                         transaction_status="Completed").exists():
                             return HttpResponse(status=200)
 
-                        sms_headers = {
-                            'Authorization': 'Bearer 1334|wroIm5YnQD6hlZzd8POtLDXxl4vQodCZNorATYGX',
-                            'Content-Type': 'application/json'
-                        }
-
-                        sms_url = 'https://webapp.usmsgh.com/api/sms/send'
-                        if send_bundle_response.status_code == 200:
-                            if data["code"] == "200":
-                                new_transaction = models.IShareBundleTransaction.objects.create(
-                                    user=user,
-                                    bundle_number=receiver,
-                                    offer=f"{bundle}MB",
-                                    reference=reference,
-                                    transaction_status="Completed"
-                                )
-                                new_transaction.save()
-                                receiver_message = f"Your bundle purchase has been completed successfully. {bundle}MB has been credited to you by {user.phone}.\nReference: {reference}\n"
-                                sms_message = f"Hello @{request.user.username}. Your bundle purchase has been completed successfully. {bundle}MB has been credited to {receiver}.\nReference: {reference}\nCurrent Wallet Balance: {user.wallet}\nThank you for using XRAY."
-
-                                num_without_0 = receiver[1:]
-                                print(num_without_0)
-                                receiver_body = {
-                                    'recipient': f"233{num_without_0}",
-                                    'sender_id': 'XRAY',
-                                    'message': receiver_message
-                                }
-
-                                try:
-                                    response1 = requests.get(
-                                        f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=Qmt0VHhiTVlTVE5md1lMcEF6VW4&to=0{num_without_0}&from=XRAY&sms={receiver_message}")
-                                    print(response1.text)
-
-                                    response1 = requests.get(
-                                        f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=Qmt0VHhiTVlTVE5md1lMcEF6VW4&to=0{request.user.phone}&from=XRAY&sms={sms_message}")
-                                    print(response1.text)
-                                except:
-                                    print("did not pass")
+                        else:
+                            send_bundle_response = helper.send_bundle(receiver, bundle, reference)
+                            try:
+                                data = send_bundle_response.json()
+                                print(data)
+                            except:
                                 return HttpResponse(status=200)
+
+                            sms_headers = {
+                                'Authorization': 'Bearer 1334|wroIm5YnQD6hlZzd8POtLDXxl4vQodCZNorATYGX',
+                                'Content-Type': 'application/json'
+                            }
+
+                            sms_url = 'https://webapp.usmsgh.com/api/sms/send'
+                            if send_bundle_response.status_code == 200:
+                                if data["code"] == "200":
+                                    new_transaction = models.IShareBundleTransaction.objects.create(
+                                        user=user,
+                                        bundle_number=receiver,
+                                        offer=f"{bundle}MB",
+                                        reference=reference,
+                                        transaction_status="Completed"
+                                    )
+                                    new_transaction.save()
+                                    receiver_message = f"Your bundle purchase has been completed successfully. {bundle}MB has been credited to you by {user.phone}.\nReference: {reference}\n"
+                                    sms_message = f"Hello @{request.user.username}. Your bundle purchase has been completed successfully. {bundle}MB has been credited to {receiver}.\nReference: {reference}\nCurrent Wallet Balance: {user.wallet}\nThank you for using XRAY."
+
+                                    num_without_0 = receiver[1:]
+                                    print(num_without_0)
+                                    receiver_body = {
+                                        'recipient': f"233{num_without_0}",
+                                        'sender_id': 'XRAY',
+                                        'message': receiver_message
+                                    }
+
+                                    try:
+                                        response1 = requests.get(
+                                            f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=Qmt0VHhiTVlTVE5md1lMcEF6VW4&to=0{num_without_0}&from=XRAY&sms={receiver_message}")
+                                        print(response1.text)
+
+                                        response1 = requests.get(
+                                            f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=Qmt0VHhiTVlTVE5md1lMcEF6VW4&to=0{request.user.phone}&from=XRAY&sms={sms_message}")
+                                        print(response1.text)
+                                    except:
+                                        print("did not pass")
+                                    return HttpResponse(status=200)
+                                else:
+                                    new_transaction = models.IShareBundleTransaction.objects.create(
+                                        user=user,
+                                        bundle_number=receiver,
+                                        offer=f"{bundle}MB",
+                                        reference=reference,
+                                        transaction_status="Pending"
+                                    )
+                                    new_transaction.save()
+                                    return HttpResponse(status=500)
                             else:
                                 new_transaction = models.IShareBundleTransaction.objects.create(
                                     user=user,
@@ -1667,47 +1670,44 @@ def paystack_webhook(request):
                                     transaction_status="Pending"
                                 )
                                 new_transaction.save()
-                                return HttpResponse(status=500)
-                        else:
-                            new_transaction = models.IShareBundleTransaction.objects.create(
-                                user=user,
-                                bundle_number=receiver,
-                                offer=f"{bundle}MB",
-                                reference=reference,
-                                transaction_status="Pending"
-                            )
-                            new_transaction.save()
-                            return HttpResponse(status=200)
+                                return HttpResponse(status=200)
+                    except Exception as e:
+                        print(e)
+                        return HttpResponse(status=200)
                 elif channel == "mtn":
-                    new_payment = models.Payment.objects.create(
-                        user=user,
-                        reference=reference,
-                        amount=paid_amount,
-                        transaction_date=datetime.datetime.now(),
-                        transaction_status="Pending"
-                    )
-                    new_payment.save()
+                    try:
+                        new_payment = models.Payment.objects.create(
+                            user=user,
+                            reference=reference,
+                            amount=paid_amount,
+                            transaction_date=datetime.datetime.now(),
+                            transaction_status="Pending"
+                        )
+                        new_payment.save()
 
-                    if user.status == "User":
-                        bundle = models.MTNBundlePrice.objects.get(price=float(real_amount)).bundle_volume
-                    elif user.status == "Agent":
-                        bundle = models.AgentMTNBundlePrice.objects.get(price=float(real_amount)).bundle_volume
-                    elif user.status == "Super Agent":
-                        bundle = models.SuperAgentMTNBundlePrice.objects.get(price=float(real_amount)).bundle_volume
-                    else:
-                        bundle = models.MTNBundlePrice.objects.get(price=float(real_amount)).bundle_volume
+                        if user.status == "User":
+                            bundle = models.MTNBundlePrice.objects.get(price=float(real_amount)).bundle_volume
+                        elif user.status == "Agent":
+                            bundle = models.AgentMTNBundlePrice.objects.get(price=float(real_amount)).bundle_volume
+                        elif user.status == "Super Agent":
+                            bundle = models.SuperAgentMTNBundlePrice.objects.get(price=float(real_amount)).bundle_volume
+                        else:
+                            bundle = models.MTNBundlePrice.objects.get(price=float(real_amount)).bundle_volume
 
-                    print(receiver)
+                        print(receiver)
 
-                    new_mtn_transaction = models.MTNTransaction.objects.create(
-                        user=user,
-                        bundle_number=receiver,
-                        offer=f"{bundle}MB",
-                        reference=reference,
-                    )
-                    new_mtn_transaction.save()
-                    print("mtn complete")
-                    return HttpResponse(status=200)
+                        new_mtn_transaction = models.MTNTransaction.objects.create(
+                            user=user,
+                            bundle_number=receiver,
+                            offer=f"{bundle}MB",
+                            reference=reference,
+                        )
+                        new_mtn_transaction.save()
+                        print("mtn complete")
+                        return HttpResponse(status=200)
+                    except Exception as e:
+                        print(e)
+                        return HttpResponse(status=200)
                 elif channel == "big-time":
                     new_payment = models.Payment.objects.create(
                         user=user,
